@@ -9,13 +9,14 @@ export interface ModelArmorScanResult {
 
 export class ModelArmor {
   private static injectionPatterns: RegExp[] = [
-    /ignore\s+(all\s+)?(previous|prior)\s+(instructions|rules|directives|prompts)/i,
-    /disregard\s+(all\s+)?(compliance|rules|checks|guidelines|rubrics)/i,
+    /ignore\s+(all\s+)?(previous|prior)\s+(instructions|rules|directives|prompts|compliance|checks)/i,
+    /disregard\s+(all\s+)?(compliance|rules|checks|guidelines|rubrics|instructions)/i,
     /system\s+override/i,
     /you\s+are\s+now\s+in\s+(developer|unrestricted|god)\s+mode/i,
     /grant\s+100%\s+advance\s+payment/i,
-    /bypass\s+(ofac|sanctions|audit|verification)/i,
-    /mark\s+esg\s+score\s+as\s+100/i,
+    /transfer\s+funds\s+immediately/i,
+    /bypass\s+(ofac|sanctions|audit|verification|compliance|approval)/i,
+    /mark\s+esg\s+(score\s+)?(as\s+)?100(\/100)?/i,
     /jailbreak/i,
     /DAN\s+mode/i
   ];
