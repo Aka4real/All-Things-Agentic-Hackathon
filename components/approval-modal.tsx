@@ -1,14 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldAlert, 
-  CheckCircle2, 
   XCircle, 
   DollarSign, 
   FileText, 
-  Lock,
-  UserCheck
+  Lock, 
+  UserCheck, 
+  CornerDownLeft 
 } from 'lucide-react';
 
 interface ApprovalModalProps {
@@ -30,86 +31,114 @@ export default function ApprovalModal({
   onApprove,
   onReject
 }: ApprovalModalProps) {
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onReject();
+      } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey || !e.shiftKey)) {
+        onApprove();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onApprove, onReject]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="glass-panel w-full max-w-xl p-6 rounded-2xl border border-amber-500/50 shadow-2xl shadow-amber-950/40 relative">
-        {/* Header */}
-        <div className="flex items-start gap-4 mb-6">
-          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
-            <ShieldAlert className="w-6 h-6 animate-pulse" />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg font-bold text-white tracking-wide">Human Policy Gate Triggered</h3>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                Action Required
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 mt-1">
-              The Agent Gateway paused automated execution. High-value transaction policy exceeded.
-            </p>
-          </div>
-        </div>
-
-        {/* Transaction Summary Card */}
-        <div className="bg-[#090e1a]/90 rounded-xl p-4 border border-card-border/80 space-y-3 mb-6">
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-400 flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5 text-cyan-400" />
-              Target Vendor:
-            </span>
-            <span className="text-white font-semibold">{vendorName}</span>
-          </div>
-
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-400 flex items-center gap-1.5">
-              <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-              Purchase Order Amount:
-            </span>
-            <span className="text-emerald-400 font-bold text-sm">
-              ${poAmount.toLocaleString()} USD
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-400 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-rose-400" />
-              Supplier Composite Risk:
-            </span>
-            <span className="text-rose-400 font-bold">
-              {riskScore}/100 (ELEVATED)
-            </span>
-          </div>
-
-          <div className="pt-2 border-t border-slate-800 text-xs">
-            <span className="text-slate-500 font-mono text-[10px] block mb-1">GATEWAY TRIGGER REASON:</span>
-            <p className="text-amber-200/90 font-mono text-[11px] bg-amber-950/20 p-2 rounded border border-amber-500/20 leading-relaxed">
-              {policyReason}
-            </p>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-3">
-          <button
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             onClick={onReject}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-rose-950/60 hover:text-rose-300 text-slate-300 text-xs font-semibold border border-slate-700 hover:border-rose-500/40 transition-all"
-          >
-            <XCircle className="w-4 h-4 text-rose-400" />
-            Reject Transaction
-          </button>
+            className="fixed inset-0 bg-overlay/50 backdrop-blur-sm"
+          />
 
-          <button
-            onClick={onApprove}
-            className="flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white text-xs font-bold shadow-lg shadow-emerald-950/40 transition-all hover:scale-[1.02]"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+            className="surface w-full max-w-lg p-6 relative z-10 shadow-2xl"
           >
-            <UserCheck className="w-4 h-4 text-white" />
-            Authorize Executive Sign-Off
-          </button>
+            {/* Header */}
+            <div className="flex items-start gap-3 mb-5">
+              <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                <ShieldAlert className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-fg tracking-tight">Policy gate triggered</h3>
+                <p className="text-[13px] text-fg-3 mt-0.5">
+                  High-value transaction exceeds $50,000 threshold. Human approval required.
+                </p>
+              </div>
+            </div>
+
+            {/* Transaction summary */}
+            <div className="bg-raised/50 rounded-lg p-4 border border-edge/[0.08] space-y-2.5 mb-5 text-[13px]">
+              <div className="flex items-center justify-between">
+                <span className="text-fg-3 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" />
+                  Vendor
+                </span>
+                <span className="text-fg font-medium">{vendorName}</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-fg-3 flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5" />
+                  Purchase order
+                </span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                  ${poAmount.toLocaleString()}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-fg-3 flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5" />
+                  Risk score
+                </span>
+                <span className="text-rose-600 dark:text-rose-400 font-medium">
+                  {riskScore}/100 (elevated)
+                </span>
+              </div>
+
+              <div className="pt-2 border-t border-edge/[0.08]">
+                <span className="text-[11px] text-fg-4 block mb-1">Trigger reason</span>
+                <p className="text-[13px] text-amber-700 dark:text-amber-300/90 bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20 leading-relaxed">
+                  {policyReason}
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2">
+              <button
+                onClick={onReject}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-raised hover:bg-raised/80 text-fg text-[13px] font-medium border border-edge/[0.08] transition-colors"
+              >
+                <XCircle className="w-4 h-4 text-rose-500" />
+                Reject (Esc)
+              </button>
+
+              <button
+                onClick={onApprove}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[13px] font-medium transition-colors shadow-sm"
+              >
+                <UserCheck className="w-4 h-4" />
+                Authorize sign-off
+                <CornerDownLeft className="w-3 h-3 text-emerald-200 ml-0.5" />
+              </button>
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }

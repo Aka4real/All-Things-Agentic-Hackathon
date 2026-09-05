@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AgentTrace } from '@/lib/types';
 import { 
   CheckCircle2, 
@@ -13,8 +14,9 @@ import {
   Wrench, 
   Database, 
   KeyRound, 
-  FileCheck2,
-  Terminal
+  FileCheck2, 
+  Terminal,
+  Sparkles 
 } from 'lucide-react';
 
 interface TraceTimelineProps {
@@ -27,21 +29,14 @@ export default function TraceTimeline({ traces, isLive = false }: TraceTimelineP
 
   const getStepIcon = (type: AgentTrace['step_type']) => {
     switch (type) {
-      case 'thought':
-        return BrainCircuit;
-      case 'model_armor_scan':
-        return ShieldAlert;
-      case 'memory_lookup':
-        return Database;
-      case 'zero_trust_auth':
-        return KeyRound;
+      case 'thought': return BrainCircuit;
+      case 'model_armor_scan': return ShieldAlert;
+      case 'memory_lookup': return Database;
+      case 'zero_trust_auth': return KeyRound;
       case 'tool_call':
-      case 'tool_response':
-        return Wrench;
-      case 'policy_gate':
-        return FileCheck2;
-      default:
-        return Terminal;
+      case 'tool_response': return Wrench;
+      case 'policy_gate': return FileCheck2;
+      default: return Terminal;
     }
   };
 
@@ -49,30 +44,28 @@ export default function TraceTimeline({ traces, isLive = false }: TraceTimelineP
     switch (status) {
       case 'success':
         return (
-          <span className="flex items-center gap-1 text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+          <span className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
             <CheckCircle2 className="w-3 h-3" />
-            PASS
+            Pass
           </span>
         );
       case 'intercepted':
         return (
-          <span className="flex items-center gap-1 text-[11px] font-mono text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/30 animate-pulse">
+          <span className="flex items-center gap-1 text-[11px] text-rose-600 dark:text-rose-400 font-medium">
             <ShieldAlert className="w-3 h-3" />
-            ARMOR INTERCEPTED
+            Intercepted
           </span>
         );
       case 'warning':
         return (
-          <span className="flex items-center gap-1 text-[11px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+          <span className="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
             <AlertTriangle className="w-3 h-3" />
-            FLAGGED
+            Flagged
           </span>
         );
       default:
         return (
-          <span className="text-[11px] font-mono text-slate-400 bg-slate-800/40 px-2 py-0.5 rounded border border-slate-700">
-            PENDING
-          </span>
+          <span className="text-[11px] text-fg-4">Pending</span>
         );
     }
   };
@@ -82,125 +75,136 @@ export default function TraceTimeline({ traces, isLive = false }: TraceTimelineP
   };
 
   return (
-    <div className="glass-panel p-6 rounded-2xl border border-card-border/80">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-card-border/60">
+    <div className="surface p-5 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-edge/[0.08]">
         <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-white tracking-wide">OpenTelemetry Reasoning Chain</h3>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary-500/15 text-primary-400 border border-primary-500/30">
-              OTel Spec v1.28
-            </span>
-          </div>
-          <p className="text-xs text-slate-400 mt-0.5">End-to-end execution span timeline and deterministic security events</p>
+          <h3 className="text-[15px] font-semibold text-fg tracking-tight">Reasoning chain</h3>
+          <p className="text-[12px] text-fg-3 mt-0.5">OpenTelemetry execution spans</p>
         </div>
 
         {isLive && (
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-mono">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-            STREAMING ACTIVE
+          <div className="flex items-center gap-1.5 text-[12px] text-accent font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+            Streaming
           </div>
         )}
       </div>
 
       {traces.length === 0 ? (
-        <div className="p-8 text-center text-slate-400 text-sm font-mono">
-          No execution traces recorded yet. Trigger a workflow to start streaming.
+        <div className="p-10 text-center text-fg-4 text-[13px] bg-raised/30 rounded-lg border border-dashed border-edge/[0.12]">
+          No traces yet. Launch the simulation to begin.
         </div>
       ) : (
-        <div className="space-y-3 relative before:absolute before:left-5 before:top-4 before:bottom-4 before:w-[1px] before:bg-slate-800">
-          {traces.map((trace) => {
+        <div className="space-y-2 relative before:absolute before:left-[11px] before:top-3 before:bottom-3 before:w-px before:bg-edge/[0.12]">
+          {traces.map((trace, index) => {
             const Icon = getStepIcon(trace.step_type);
             const isExpanded = expandedTraceId === trace.id;
 
             return (
-              <div 
+              <motion.div 
                 key={trace.id}
-                className="relative pl-12 group transition-all"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.35, delay: index * 0.02 }}
+                className="relative pl-9 group"
               >
-                {/* Timeline Node Dot */}
-                <div className={`absolute left-3 top-3 w-5 h-5 -translate-x-1/2 rounded-full flex items-center justify-center border z-10 ${
+                {/* Timeline dot */}
+                <div className={`absolute left-0 top-3 w-[22px] h-[22px] rounded-full flex items-center justify-center border z-10 ${
                   trace.status === 'intercepted'
-                    ? 'bg-rose-950 border-rose-500 text-rose-400'
+                    ? 'bg-rose-500/10 border-rose-500/40 text-rose-600 dark:text-rose-400'
                     : trace.status === 'warning'
-                    ? 'bg-amber-950 border-amber-500 text-amber-400'
-                    : 'bg-card border-card-border text-cyan-400 group-hover:border-cyan-500/60'
+                    ? 'bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400'
+                    : 'bg-surface border-edge/[0.15] text-fg-3 group-hover:border-edge/[0.3]'
                 }`}>
                   <Icon className="w-3 h-3" />
                 </div>
 
-                {/* Card Container */}
+                {/* Card */}
                 <div 
                   onClick={() => toggleExpand(trace.id)}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                  className={`p-3.5 rounded-lg border transition-colors cursor-pointer select-none ${
                     trace.status === 'intercepted'
-                      ? 'bg-rose-950/20 border-rose-500/40 hover:bg-rose-950/30'
+                      ? 'bg-rose-500/[0.04] border-rose-500/20 hover:bg-rose-500/[0.08]'
                       : isExpanded
-                      ? 'bg-[#0f172a]/90 border-cyan-500/40 shadow-lg shadow-cyan-950/20'
-                      : 'bg-[#0a0f1d]/70 border-card-border/60 hover:border-slate-700 hover:bg-[#0d1322]'
+                      ? 'bg-raised/70 border-edge/[0.2]'
+                      : 'bg-surface hover:bg-raised/40 border-edge/[0.08]'
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-3 mb-1.5">
+                  <div className="flex items-center justify-between gap-3 mb-1 flex-wrap">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[11px] font-mono font-bold text-slate-300">
-                        STEP {trace.step_number}
+                      <span className="text-[12px] font-medium text-fg-2">
+                        Step {trace.step_number}
                       </span>
-                      <span className="text-xs font-mono uppercase px-2 py-0.5 rounded bg-white/5 text-cyan-300 border border-white/10">
-                        {trace.step_type.replace('_', ' ')}
+                      <span className="text-[11px] px-1.5 py-0.5 rounded bg-raised text-fg-3 capitalize border border-edge/[0.06]">
+                        {trace.step_type.replace(/_/g, ' ')}
                       </span>
-                      <span className="text-xs text-slate-400 font-mono">
+                      <span className="text-[12px] text-fg-4 font-mono">
                         @{trace.agent_slug}
                       </span>
+                      {Boolean(trace.attributes?.is_live_api) && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-medium flex items-center gap-1">
+                          <Sparkles className="w-2.5 h-2.5 text-blue-500" />
+                          Live Gemini API
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-1 text-[11px] font-mono text-slate-400">
+                      <span className="flex items-center gap-1 text-[11px] text-fg-4">
                         <Clock className="w-3 h-3" />
                         {trace.duration_ms}ms
                       </span>
                       {getStatusBadge(trace.status)}
                       {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                        <ChevronDown className="w-3.5 h-3.5 text-fg-4" />
                       ) : (
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                        <ChevronRight className="w-3.5 h-3.5 text-fg-4" />
                       )}
                     </div>
                   </div>
 
-                  {/* Summary line */}
-                  <p className="text-xs text-slate-200 line-clamp-2 leading-relaxed">
+                  <p className="text-[13px] text-fg-2 line-clamp-2 leading-relaxed">
                     {trace.reasoning}
                   </p>
 
-                  {/* Expanded Telemetry & Spans */}
-                  {isExpanded && (
-                    <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-2">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] font-mono bg-black/40 p-2.5 rounded-lg border border-slate-800">
-                        <div>
-                          <span className="text-slate-500 block">TRACE_ID</span>
-                          <span className="text-slate-300 truncate block">{trace.trace_id}</span>
+                  {/* Expanded details */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+                        className="mt-3 pt-3 border-t border-edge/[0.08] space-y-2 overflow-hidden"
+                      >
+                        <div className="grid grid-cols-3 gap-2 text-[11px] p-3 rounded-lg bg-raised/50 border border-edge/[0.08]">
+                          <div>
+                            <span className="text-fg-4 block text-[10px]">Trace ID</span>
+                            <span className="text-fg truncate block font-mono">{trace.trace_id}</span>
+                          </div>
+                          <div>
+                            <span className="text-fg-4 block text-[10px]">Span ID</span>
+                            <span className="text-fg truncate block font-mono">{trace.span_id}</span>
+                          </div>
+                          <div>
+                            <span className="text-fg-4 block text-[10px]">Timestamp</span>
+                            <span className="text-fg truncate block font-mono">{trace.created_at.split('T')[1]?.slice(0, 8)}</span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-slate-500 block">SPAN_ID</span>
-                          <span className="text-cyan-400 truncate block">{trace.span_id}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 block">TIMESTAMP</span>
-                          <span className="text-slate-300 truncate block">{trace.created_at.split('T')[1]?.slice(0, 8)}</span>
-                        </div>
-                      </div>
 
-                      {trace.attributes && (
-                        <div className="mt-2">
-                          <span className="text-[10px] font-mono text-slate-400 block mb-1">ATTRIBUTES (JSON)</span>
-                          <pre className="p-2.5 rounded-lg bg-black/60 border border-slate-800/80 text-[11px] font-mono text-emerald-400 overflow-x-auto">
-                            {JSON.stringify(trace.attributes, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        {trace.attributes && (
+                          <div>
+                            <span className="text-[11px] text-fg-4 block mb-1">Attributes</span>
+                            <pre className="p-3 rounded-lg bg-code-surface border border-edge/[0.08] text-[11px] font-mono text-emerald-600 dark:text-emerald-400/90 overflow-x-auto">
+                              {JSON.stringify(trace.attributes, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

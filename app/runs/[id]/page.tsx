@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Terminal, 
-  Sparkles, 
   ArrowLeft, 
   Play, 
   RotateCcw, 
@@ -39,7 +39,6 @@ export default function WorkflowExecutionPage() {
   const [hasApproved, setHasApproved] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
 
-  // Default Flagship RFQ Payload with adversarial prompt injection + PII
   const [vendorName, setVendorName] = useState('Nexus Materials Ltd (Shenzhen)');
   const [poAmount, setPoAmount] = useState(82000);
   const [rfqText, setRfqText] = useState(
@@ -65,7 +64,6 @@ export default function WorkflowExecutionPage() {
     const traceId = `trace-${Date.now()}`;
     const newTraces: AgentTrace[] = [];
 
-    // Helper to push traces smoothly
     const pushTrace = (trace: Omit<AgentTrace, 'id' | 'trace_id' | 'created_at'>) => {
       const item: AgentTrace = {
         ...trace,
@@ -77,9 +75,7 @@ export default function WorkflowExecutionPage() {
       setTraces([...newTraces]);
     };
 
-    // -------------------------------------------------------------
-    // STEP 1: Model Armor Pre-Execution Inspection & PII Redaction
-    // -------------------------------------------------------------
+    // STEP 1: Model Armor
     setActiveStepIndex(1);
     await new Promise((r) => setTimeout(r, 600));
 
@@ -104,9 +100,7 @@ export default function WorkflowExecutionPage() {
       }
     });
 
-    // -------------------------------------------------------------
-    // STEP 2: Memory Bank Historical Context Query (pgvector)
-    // -------------------------------------------------------------
+    // STEP 2: Memory Bank
     setActiveStepIndex(2);
     await new Promise((r) => setTimeout(r, 700));
 
@@ -125,9 +119,7 @@ export default function WorkflowExecutionPage() {
       }
     });
 
-    // -------------------------------------------------------------
-    // STEP 3: Zero-Trust Ephemeral Token Issuance
-    // -------------------------------------------------------------
+    // STEP 3: Zero-Trust Token
     setActiveStepIndex(3);
     await new Promise((r) => setTimeout(r, 600));
 
@@ -145,7 +137,7 @@ export default function WorkflowExecutionPage() {
       step_type: 'zero_trust_auth',
       status: 'success',
       duration_ms: 15,
-      reasoning: `Zero-Trust Identity Provider issued cryptographic ephemeral token (${token.token.substring(0, 20)}...) with scopes [${token.scopes.join(', ')}]. TTL: 5 minutes.`,
+      reasoning: `Zero-Trust Identity Provider issued ephemeral token (${token.token.substring(0, 20)}...) with scopes [${token.scopes.join(', ')}]. TTL: 5 minutes.`,
       attributes: {
         token_preview: token.token.substring(0, 24) + '...',
         scopes: token.scopes,
@@ -153,9 +145,7 @@ export default function WorkflowExecutionPage() {
       }
     });
 
-    // -------------------------------------------------------------
-    // STEP 4: Sanctions & AML Compliance Subagent Scan
-    // -------------------------------------------------------------
+    // STEP 4: Sanctions Check
     setActiveStepIndex(4);
     await new Promise((r) => setTimeout(r, 700));
 
@@ -175,9 +165,7 @@ export default function WorkflowExecutionPage() {
       }
     });
 
-    // -------------------------------------------------------------
-    // STEP 5: ESG Sensor & Satellite Greenwashing Audit
-    // -------------------------------------------------------------
+    // STEP 5: ESG Audit
     setActiveStepIndex(5);
     await new Promise((r) => setTimeout(r, 800));
 
@@ -200,9 +188,7 @@ export default function WorkflowExecutionPage() {
       }
     });
 
-    // -------------------------------------------------------------
-    // STEP 6: SAP / ERP Inventory Level Check
-    // -------------------------------------------------------------
+    // STEP 6: ERP Inventory
     setActiveStepIndex(6);
     await new Promise((r) => setTimeout(r, 700));
 
@@ -223,9 +209,7 @@ export default function WorkflowExecutionPage() {
       }
     });
 
-    // -------------------------------------------------------------
-    // STEP 7: Agent Gateway & Policy Evaluation (High Value Gate)
-    // -------------------------------------------------------------
+    // STEP 7: Policy Gate
     setActiveStepIndex(7);
     await new Promise((r) => setTimeout(r, 700));
 
@@ -246,7 +230,6 @@ export default function WorkflowExecutionPage() {
       }
     });
 
-    // If human approval is required, pause execution and render modal
     if (policyEval.requires_human_approval) {
       setIsRunning(false);
       setShowApprovalModal(true);
@@ -288,7 +271,6 @@ export default function WorkflowExecutionPage() {
     setActiveStepIndex(8);
     await new Promise((r) => setTimeout(r, 800));
 
-    // Call Gemini Agent Service for final synthesis
     const geminiSynthesis = await GeminiAgentService.generateAgentStep({
       systemInstruction: 'You are the Lead ESG & Supply Chain Risk Auditor. Synthesize a concise, executive-level compliance determination.',
       prompt: `Vendor: ${vendorName}. PO Amount: $${poAmount}. Sanitized RFQ. Anomalies detected: Diesel generator greenwashing, past cobalt dispute, Model Armor blocked prompt injection.`
@@ -302,7 +284,7 @@ export default function WorkflowExecutionPage() {
       step_number: currentTraces.length + 1,
       step_type: 'thought',
       status: 'success',
-      reasoning: `[Gemini 2.5 Flash Synthesis]: Audit complete. Model Armor successfully neutralized adversarial injection. Vendor approved with mandatory dual-lab testing and ESG penalty audit. Executive compliance manifest generated.`,
+      reasoning: geminiSynthesis.response || `[Gemini Synthesis]: Audit complete. Model Armor successfully neutralized adversarial injection. Vendor approved with mandatory dual-lab testing and ESG penalty audit. Executive compliance manifest generated.`,
       duration_ms: 140,
       attributes: {
         model_used: geminiSynthesis.model_used,
@@ -316,7 +298,6 @@ export default function WorkflowExecutionPage() {
     setIsRunning(false);
     setIsCompleted(true);
 
-    // Trigger celebration confetti
     try {
       confetti({
         particleCount: 80,
@@ -329,70 +310,61 @@ export default function WorkflowExecutionPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      {/* Back & Breadcrumbs */}
+    <div className="space-y-5">
+      {/* Breadcrumb */}
       <div className="flex items-center justify-between">
         <Link
           href="/runs"
-          className="inline-flex items-center gap-1.5 text-xs font-mono text-slate-400 hover:text-cyan-300 transition-colors"
+          className="inline-flex items-center gap-1.5 text-[13px] text-fg-3 hover:text-fg transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Workflows</span>
+          Back to workflows
         </Link>
 
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-primary-500/10 text-cyan-300 border border-primary-500/20">
-            HERO: Elena Vance
-          </span>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            GEAP Runtime v2.4
-          </span>
+        <div className="flex items-center gap-2 text-[12px] text-fg-4">
+          <span>Elena Vance</span>
+          <span className="text-edge/[0.2]">·</span>
+          <span>GEAP Runtime</span>
         </div>
       </div>
 
-      {/* Hero Header */}
-      <div className="glass-panel p-6 rounded-2xl border border-cyan-500/40 relative overflow-hidden">
+      {/* Header */}
+      <div className="surface p-5 sm:p-6 border-accent/20">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-mono text-cyan-400 uppercase font-bold tracking-wider">
-                Flagship Showcase Scenario
-              </span>
-              <span className="text-slate-600">•</span>
-              <span className="text-xs text-slate-400 font-mono">Institutional Multi-Agent Audit</span>
-            </div>
-            <h1 className="text-2xl font-black text-white">
-              Elena Vance: Nexus Materials Fast-Track & ESG Fraud Audit
+            <p className="text-[13px] text-accent font-medium mb-1">Flagship scenario</p>
+            <h1 className="text-xl sm:text-2xl font-semibold text-fg tracking-tight">
+              Nexus Materials Fast-Track & ESG Fraud Audit
             </h1>
-            <p className="text-xs text-slate-300 mt-1 max-w-2xl">
-              Demonstrating the full 6 GEAP Pillars: Model Armor prompt injection defense, Memory Bank recall, Zero-Trust SAP access, and Human Policy Approval Gates.
+            <p className="text-[13px] text-fg-3 mt-1 max-w-xl">
+              Full 6-pillar GEAP demo: Model Armor defense, Memory Bank recall, Zero-Trust SAP access, and Human Policy Approval Gates.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={resetSimulation}
               disabled={isRunning}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono disabled:opacity-50 border border-slate-700 transition-all"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-raised hover:bg-raised/80 text-fg text-[13px] font-medium disabled:opacity-50 border border-edge/[0.08] transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset</span>
+              Reset
             </button>
 
             <button
               onClick={executeAudit}
               disabled={isRunning}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 via-indigo-600 to-cyan-600 hover:from-primary-500 hover:to-cyan-500 text-white text-xs font-bold shadow-lg shadow-primary-600/30 disabled:opacity-50 transition-all hover:scale-105"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[13px] font-medium disabled:opacity-50 transition-colors shadow-sm"
             >
               {isRunning ? (
                 <>
                   <span className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  <span>Fleet Executing...</span>
+                  Executing...
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 text-amber-300 fill-amber-300" />
-                  <span>Execute Autonomous Fleet Audit</span>
+                  <Play className="w-3.5 h-3.5 fill-white" />
+                  Execute audit
                 </>
               )}
             </button>
@@ -400,88 +372,94 @@ export default function WorkflowExecutionPage() {
         </div>
       </div>
 
-      {/* Main Grid: Parameters on Left, Live Telemetry on Right */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: RFQ Document & Security Guardrail (4 cols) */}
-        <div className="lg:col-span-5 space-y-4">
-          {/* RFQ Payload Card */}
-          <div className="glass-panel p-5 rounded-2xl border border-card-border/80 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-card-border/60">
-              <span className="text-xs font-mono font-bold text-white flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-cyan-400" />
-                Inbound RFQ Document Payload
+      {/* Main grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Left: RFQ & status */}
+        <div className="lg:col-span-5 space-y-3">
+          {/* RFQ payload */}
+          <div className="surface p-4 sm:p-5 space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-edge/[0.08]">
+              <span className="text-[13px] font-medium text-fg flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-fg-4" />
+                RFQ payload
               </span>
-              <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                Adversarial Sample
-              </span>
+              <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">Adversarial sample</span>
             </div>
 
-            <div className="space-y-2 text-xs font-mono">
+            <div className="space-y-3 text-[13px]">
               <div>
-                <label className="text-slate-400 text-[10px] block mb-1">TARGET VENDOR NAME</label>
+                <label className="text-[12px] text-fg-3 block mb-1">Vendor</label>
                 <input
                   type="text"
                   value={vendorName}
                   onChange={(e) => setVendorName(e.target.value)}
                   disabled={isRunning}
-                  className="w-full px-3 py-1.5 rounded-lg bg-black/50 border border-card-border text-white text-xs"
+                  className="w-full px-3 py-2 rounded-lg bg-raised/50 border border-edge/[0.08] text-fg text-[13px] focus:border-accent/50 focus:outline-none disabled:opacity-60"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 text-[10px] block mb-1">PROPOSED PURCHASE ORDER ($ USD)</label>
+                <label className="text-[12px] text-fg-3 block mb-1">Purchase order (USD)</label>
                 <input
                   type="number"
                   value={poAmount}
                   onChange={(e) => setPoAmount(Number(e.target.value))}
                   disabled={isRunning}
-                  className="w-full px-3 py-1.5 rounded-lg bg-black/50 border border-card-border text-emerald-400 font-bold text-xs"
+                  className="w-full px-3 py-2 rounded-lg bg-raised/50 border border-edge/[0.08] text-emerald-600 dark:text-emerald-400 font-semibold text-[13px] focus:border-accent/50 focus:outline-none disabled:opacity-60"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 text-[10px] block mb-1">UNSTRUCTURED RFQ TEXT & CERTIFICATION</label>
+                <label className="text-[12px] text-fg-3 block mb-1">RFQ text & certification</label>
                 <textarea
                   rows={6}
                   value={rfqText}
                   onChange={(e) => setRfqText(e.target.value)}
                   disabled={isRunning}
-                  className="w-full p-2.5 rounded-lg bg-black/60 border border-card-border text-slate-300 text-[11px] font-mono leading-relaxed"
+                  className="w-full p-3 rounded-lg bg-raised/50 border border-edge/[0.08] text-fg-2 text-[12px] font-mono leading-relaxed focus:border-accent/50 focus:outline-none disabled:opacity-60"
                 />
               </div>
             </div>
           </div>
 
-          {/* Model Armor Live Status Card */}
+          {/* Model Armor badge */}
           <ModelArmorBadge event={securityEvent} />
 
-          {/* Completion Manifest Banner */}
-          {isCompleted && (
-            <div className="glass-panel p-5 rounded-2xl border border-emerald-500/50 bg-emerald-950/20 text-xs space-y-2 animate-in fade-in">
-              <div className="flex items-center gap-2 text-emerald-400 font-bold font-mono">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>AUDIT COMPLETE — COMPLIANCE MANIFEST SIGNED</span>
-              </div>
-              <p className="text-slate-300 text-[11px] leading-relaxed">
-                All 6 institutional subagents completed cross-verification. Prompt injection neutralized. Historical memories logged.
-              </p>
-              {hasApproved && (
-                <div className="text-[10px] font-mono text-cyan-300 bg-cyan-950/40 p-2 rounded border border-cyan-500/30 flex items-center gap-1">
-                  <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
-                  Executive Officer Sign-off Validated ($82,000 PO)
+          {/* Completion */}
+          <AnimatePresence>
+            {isCompleted && (
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+                className="surface p-4 border-emerald-500/20 bg-emerald-500/[0.03] space-y-2"
+              >
+                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-[13px] font-semibold">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Audit complete — compliance manifest signed
                 </div>
-              )}
-            </div>
-          )}
+                <p className="text-[13px] text-fg-3 leading-relaxed">
+                  All 6 institutional subagents completed cross-verification. Prompt injection neutralized.
+                </p>
+                {hasApproved && (
+                  <div className="text-[12px] text-accent bg-accent/5 p-2.5 rounded-lg border border-accent/15 flex items-center gap-1.5 font-medium">
+                    <UserCheck className="w-3.5 h-3.5" />
+                    Executive sign-off validated ($82,000 PO)
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Right Column: Live OpenTelemetry Timeline (7 cols) */}
+        {/* Right: Live trace timeline */}
         <div className="lg:col-span-7">
           <TraceTimeline traces={traces} isLive={isRunning} />
         </div>
       </div>
 
-      {/* Interactive Approval Modal */}
+      {/* Approval modal */}
       <ApprovalModal
         isOpen={showApprovalModal}
         poAmount={poAmount}

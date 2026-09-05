@@ -2,18 +2,15 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Layers, 
   Search, 
-  CheckCircle2, 
   Lock, 
-  Cpu, 
-  Sparkles, 
-  Filter, 
-  ExternalLink,
-  ShieldCheck,
-  UserCheck,
-  Zap
+  ExternalLink, 
+  ShieldCheck, 
+  Zap, 
+  X 
 } from 'lucide-react';
 import { INITIAL_AGENTS } from '@/lib/mock-data';
 import { AgentRegistryItem } from '@/lib/types';
@@ -38,198 +35,210 @@ export default function AgentRegistryPage() {
   });
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-6 rounded-2xl border border-card-border/80">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 surface p-5 sm:p-6">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">Institutional Agent Registry</h1>
-            <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-              GEAP Core
-            </span>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Enterprise repository for discovering, versioning, and governing approved institutional subagents.
+          <h1 className="text-xl font-semibold text-fg tracking-tight">Agent Registry</h1>
+          <p className="text-[13px] text-fg-3 mt-1">
+            Discover, version, and govern approved institutional subagents.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 border border-slate-800 text-xs font-mono text-slate-300">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>{INITIAL_AGENTS.length} Governed Agents</span>
-          </div>
+        <div className="flex items-center gap-2 text-[13px] text-emerald-600 dark:text-emerald-400">
+          <ShieldCheck className="w-4 h-4" />
+          <span className="font-medium">{INITIAL_AGENTS.length} governed agents</span>
         </div>
       </div>
 
-      {/* Search & Filter Bar */}
+      {/* Search & filters */}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-        {/* Search */}
-        <div className="relative w-full sm:w-96">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <div className="relative w-full sm:w-72">
+          <Search className="w-4 h-4 text-fg-4 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search agents, capabilities, or scopes..."
+            placeholder="Search agents..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#090e1a] border border-card-border focus:border-cyan-500/60 focus:outline-none text-xs text-white placeholder:text-slate-500 font-mono"
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-surface border border-edge/[0.08] focus:border-accent/50 focus:outline-none text-[13px] text-fg placeholder:text-fg-4 transition-colors"
           />
         </div>
 
-        {/* Department Filters */}
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
-          {departments.map((dept) => (
-            <button
-              key={dept}
-              onClick={() => setSelectedDept(dept)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                selectedDept === dept
-                  ? 'bg-primary-600/30 text-cyan-300 border border-primary-500/40 shadow-sm'
-                  : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-transparent hover:border-slate-800'
-              }`}
+        <div className="flex items-center gap-0.5 overflow-x-auto">
+          {departments.map((dept) => {
+            const isSelected = selectedDept === dept;
+            return (
+              <button
+                key={dept}
+                onClick={() => setSelectedDept(dept)}
+                className={`relative px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors whitespace-nowrap ${
+                  isSelected ? 'text-fg' : 'text-fg-3 hover:text-fg'
+                }`}
+              >
+                {isSelected && (
+                  <motion.div
+                    layoutId="registry-dept"
+                    className="absolute inset-0 rounded-lg bg-raised"
+                    transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+                  />
+                )}
+                <span className="relative z-10">{dept}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Agent grid */}
+      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <AnimatePresence>
+          {filteredAgents.map((agent) => (
+            <motion.div
+              layout
+              key={agent.id}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+              className="surface p-4 flex flex-col justify-between hover:border-edge/[0.18] transition-colors group"
             >
-              {dept}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Agents Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredAgents.map((agent) => (
-          <div
-            key={agent.id}
-            className="glass-panel p-5 rounded-2xl border border-card-border/80 flex flex-col justify-between hover:border-primary-500/40 transition-all hover:shadow-xl hover:shadow-black/50 group"
-          >
-            <div>
-              {/* Top row */}
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <div>
-                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-white/5 text-cyan-400 border border-white/10">
-                    {agent.department}
+              <div>
+                <div className="flex items-start justify-between gap-2 mb-2.5">
+                  <div>
+                    <span className="text-[11px] text-fg-4 font-medium">{agent.department}</span>
+                    <h3 className="text-[14px] font-medium text-fg mt-0.5 group-hover:text-accent transition-colors">{agent.name}</h3>
+                    <span className="text-[12px] text-fg-3 font-mono">@{agent.agent_slug}</span>
+                  </div>
+                  <span className="text-[11px] px-1.5 py-0.5 rounded bg-raised text-fg-3 font-medium border border-edge/[0.06]">
+                    v{agent.version}
                   </span>
-                  <h3 className="text-base font-bold text-white mt-1.5 group-hover:text-cyan-300 transition-colors">
-                    {agent.name}
-                  </h3>
-                  <span className="text-xs text-slate-500 font-mono">@{agent.agent_slug}</span>
                 </div>
 
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  v{agent.version}
-                </span>
+                <p className="text-[13px] text-fg-3 leading-relaxed mb-3 line-clamp-2">{agent.description}</p>
+
+                {/* Capabilities */}
+                <div className="mb-3">
+                  <div className="flex flex-wrap gap-1">
+                    {agent.capabilities.map((cap) => (
+                      <span key={cap} className="text-[11px] px-1.5 py-0.5 rounded bg-raised text-fg-3 border border-edge/[0.06]">
+                        {cap}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Scopes */}
+                <div className="mb-3">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Lock className="w-3 h-3 text-fg-4" />
+                    <span className="text-[11px] text-fg-4">Required scopes</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {agent.required_scopes.map((scope) => (
+                      <span key={scope} className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                        {scope}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              {/* Description */}
-              <p className="text-xs text-slate-300 leading-relaxed mb-4 line-clamp-3">
-                {agent.description}
+              {/* Footer */}
+              <div className="pt-3 border-t border-edge/[0.08] flex items-center justify-between text-[12px]">
+                <div>
+                  <span className="text-fg-4 block text-[11px]">Model</span>
+                  <span className="text-fg-2 font-medium">{agent.model_id}</span>
+                </div>
+
+                <button
+                  onClick={() => setSelectedAgent(agent)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-raised hover:bg-raised/80 text-fg text-[12px] font-medium transition-colors border border-edge/[0.06]"
+                >
+                  Inspect
+                  <ExternalLink className="w-3 h-3 text-fg-4" />
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Inspect modal */}
+      <AnimatePresence>
+        {selectedAgent && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedAgent(null)}
+              className="fixed inset-0 bg-overlay/50 backdrop-blur-sm"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+              className="surface w-full max-w-lg p-6 relative z-10 space-y-4 shadow-xl"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-[11px] text-fg-4 font-medium">{selectedAgent.department}</span>
+                  <h2 className="text-lg font-semibold text-fg tracking-tight">{selectedAgent.name}</h2>
+                  <span className="text-[12px] font-mono text-fg-3">@{selectedAgent.agent_slug} · v{selectedAgent.version}</span>
+                </div>
+
+                <button
+                  onClick={() => setSelectedAgent(null)}
+                  className="text-fg-4 hover:text-fg p-1 rounded-lg hover:bg-raised transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-[13px] text-fg-2 leading-relaxed p-3 rounded-lg bg-raised/50 border border-edge/[0.08]">
+                {selectedAgent.description}
               </p>
 
-              {/* Capabilities */}
-              <div className="space-y-1.5 mb-4">
-                <span className="text-[10px] font-mono text-slate-400 uppercase block">Capabilities</span>
-                <div className="flex flex-wrap gap-1">
-                  {agent.capabilities.map((cap) => (
-                    <span key={cap} className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
-                      {cap}
-                    </span>
-                  ))}
+              <div className="grid grid-cols-2 gap-3 text-[13px]">
+                <div className="p-3 rounded-lg bg-raised/50 border border-edge/[0.08]">
+                  <span className="text-fg-4 block text-[11px]">Uptime SLA</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{selectedAgent.uptime_pct}%</span>
+                </div>
+                <div className="p-3 rounded-lg bg-raised/50 border border-edge/[0.08]">
+                  <span className="text-fg-4 block text-[11px]">Total runs</span>
+                  <span className="text-fg font-semibold">{selectedAgent.total_runs.toLocaleString()}</span>
                 </div>
               </div>
 
-              {/* Zero-Trust Scopes */}
-              <div className="space-y-1.5 mb-4">
-                <span className="text-[10px] font-mono text-slate-400 uppercase flex items-center gap-1">
-                  <Lock className="w-3 h-3 text-emerald-400" />
-                  Required Zero-Trust Scopes
-                </span>
-                <div className="flex flex-wrap gap-1">
-                  {agent.required_scopes.map((scope) => (
-                    <span key={scope} className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/30 border border-emerald-500/20 text-emerald-300">
-                      {scope}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Meta & Provision Button */}
-            <div className="pt-3 border-t border-card-border/60 flex items-center justify-between text-xs font-mono">
               <div>
-                <span className="text-[10px] text-slate-500 block">MODEL BACKBONE</span>
-                <span className="text-cyan-400 text-xs">{agent.model_id}</span>
+                <span className="text-[11px] text-fg-4 block mb-1">Governance</span>
+                <p className="text-[13px] text-fg-3 p-3 rounded-lg bg-raised/50 border border-edge/[0.08]">
+                  Authorized by <strong className="text-fg">{selectedAgent.author}</strong>
+                </p>
               </div>
 
-              <button
-                onClick={() => setSelectedAgent(agent)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-600/20 hover:bg-primary-600/30 text-cyan-300 border border-primary-500/30 text-xs font-semibold transition-all"
-              >
-                <span>Inspect Agent</span>
-                <ExternalLink className="w-3 h-3" />
-              </button>
-            </div>
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  onClick={() => setSelectedAgent(null)}
+                  className="px-3 py-1.5 rounded-lg bg-raised text-fg text-[13px] font-medium hover:bg-raised/80 border border-edge/[0.06] transition-colors"
+                >
+                  Close
+                </button>
+
+                <Link
+                  href="/runs/demo-elena-vance"
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[13px] font-medium transition-colors shadow-sm"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  Test in audit
+                </Link>
+              </div>
+            </motion.div>
           </div>
-        ))}
-      </div>
-
-      {/* Inspect Modal */}
-      {selectedAgent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="glass-panel w-full max-w-xl p-6 rounded-2xl border border-card-border/90 shadow-2xl relative space-y-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-xs font-mono uppercase text-cyan-400">{selectedAgent.department}</span>
-                <h2 className="text-xl font-bold text-white">{selectedAgent.name}</h2>
-                <span className="text-xs font-mono text-slate-400">@{selectedAgent.agent_slug} • Version {selectedAgent.version}</span>
-              </div>
-
-              <button
-                onClick={() => setSelectedAgent(null)}
-                className="text-slate-400 hover:text-white text-sm font-mono p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-300 leading-relaxed font-sans bg-black/40 p-3 rounded-xl border border-slate-800">
-              {selectedAgent.description}
-            </p>
-
-            <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-              <div className="p-3 rounded-xl bg-black/40 border border-slate-800">
-                <span className="text-slate-500 block text-[10px]">UPTIME SLA</span>
-                <span className="text-emerald-400 font-bold text-sm">{selectedAgent.uptime_pct}%</span>
-              </div>
-              <div className="p-3 rounded-xl bg-black/40 border border-slate-800">
-                <span className="text-slate-500 block text-[10px]">HISTORICAL RUNS</span>
-                <span className="text-cyan-400 font-bold text-sm">{selectedAgent.total_runs.toLocaleString()} Executions</span>
-              </div>
-            </div>
-
-            <div>
-              <span className="text-xs font-mono text-slate-400 block mb-1">GOVERNANCE & AUTHORSHIP</span>
-              <p className="text-xs text-slate-300 font-mono bg-[#0a0f1d] p-2.5 rounded-lg border border-slate-800">
-                Authorized By: <strong className="text-white">{selectedAgent.author}</strong> (Institutional Governance Passed)
-              </p>
-            </div>
-
-            <div className="pt-2 flex items-center justify-end gap-3">
-              <button
-                onClick={() => setSelectedAgent(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700"
-              >
-                Close Inspector
-              </button>
-
-              <Link
-                href="/runs/demo-elena-vance"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-cyan-600 text-white text-xs font-bold shadow-lg shadow-primary-600/30"
-              >
-                <Zap className="w-3.5 h-3.5 text-amber-300" />
-                <span>Test in Elena Vance Audit</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

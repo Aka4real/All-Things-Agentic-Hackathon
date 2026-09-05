@@ -11,7 +11,7 @@ create table public.agent_registry (
   department text not null,
   description text not null,
   version text not null default '1.0.0',
-  model_id text not null default 'gemini-2.5-flash',
+  model_id text not null default 'gemini-3.7-flash',
   capabilities text[] not null default '{}',
   required_scopes text[] not null default '{}',
   sla_status text not null default 'healthy',

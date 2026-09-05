@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, 
   Layers, 
@@ -10,45 +11,39 @@ import {
   Database, 
   Lock, 
   Terminal,
-  Sparkles
+  Menu,
+  X,
+  Zap
 } from 'lucide-react';
+import ThemeToggle from '@/components/theme-toggle';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { name: 'Fleet Mission Control', href: '/', icon: Activity },
-    { name: 'Agent Registry', href: '/registry', icon: Layers },
-    { name: 'Workflow Telemetry', href: '/runs', icon: Terminal },
-    { name: 'Memory Bank', href: '/memory', icon: Database },
-    { name: 'Model Armor', href: '/security', icon: Lock },
+    { name: 'Overview', href: '/', icon: Activity },
+    { name: 'Agents', href: '/registry', icon: Layers },
+    { name: 'Workflows', href: '/runs', icon: Terminal },
+    { name: 'Memory', href: '/memory', icon: Database },
+    { name: 'Security', href: '/security', icon: Lock },
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full glass-panel border-b border-card-border/60 bg-background/85 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full nav-blur">
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         {/* Brand */}
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="relative w-9 h-9 rounded-lg bg-gradient-to-tr from-primary-600 via-cyan-500 to-emerald-400 p-[1.5px] flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-[#090e1a] rounded-[7px] flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5 text-cyan-400 group-hover:text-emerald-400 transition-colors" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-base tracking-wider text-white">FORTRESS<span className="text-cyan-400">FLEET</span></span>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-primary-500/20 text-primary-400 border border-primary-500/30">
-                  GEAP Ready
-                </span>
-              </div>
-              <p className="text-[10px] text-slate-400 font-mono tracking-tight">The Fortified Enterprise Fleet</p>
-            </div>
-          </Link>
-        </div>
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shadow-sm">
+            <ShieldCheck className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-semibold text-[15px] text-fg tracking-tight">
+            FortressFleet
+          </span>
+        </Link>
 
-        {/* Navigation links */}
-        <nav className="hidden md:flex items-center gap-1">
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-0.5">
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
             const Icon = item.icon;
@@ -56,38 +51,91 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all ${
-                  isActive
-                    ? 'bg-primary-600/20 text-cyan-300 border border-primary-500/40 shadow-sm shadow-primary-500/10'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
+                className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition-colors ${
+                  isActive ? 'text-fg' : 'text-fg-3 hover:text-fg'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
-                {item.name}
+                {isActive && (
+                  <motion.div
+                    layoutId="nav-active"
+                    className="absolute inset-0 rounded-lg bg-raised/80"
+                    transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  <Icon className="w-3.5 h-3.5" />
+                  <span className="font-medium">{item.name}</span>
+                </span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Telemetry Status & Demo CTA */}
-        <div className="flex items-center gap-3">
-          <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="text-[11px] font-mono text-emerald-400 font-medium">FLEET ONLINE</span>
-          </div>
+        {/* Right side */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
 
           <Link
             href="/runs/demo-elena-vance"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-primary-600 to-cyan-600 text-white text-xs font-semibold hover:from-primary-500 hover:to-cyan-500 shadow-md shadow-primary-600/25 transition-all hover:scale-[1.02]"
+            className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[13px] font-medium transition-colors shadow-sm"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-            <span>Launch Flagship Audit</span>
+            <Zap className="w-3.5 h-3.5" />
+            <span>Run Demo</span>
           </Link>
+
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-1.5 rounded-lg text-fg-3 hover:text-fg hover:bg-raised transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
+            className="md:hidden border-t border-edge/[0.08] bg-surface/95 backdrop-blur-xl overflow-hidden px-5 py-3 space-y-1"
+          >
+            {navItems.map((item) => {
+              const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-raised text-fg'
+                      : 'text-fg-3 hover:bg-raised/50 hover:text-fg'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {item.name}
+                </Link>
+              );
+            })}
+
+            <div className="pt-2 border-t border-edge/[0.08] flex items-center gap-2">
+              <Link
+                href="/runs/demo-elena-vance"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium"
+              >
+                <Zap className="w-4 h-4" />
+                Run Demo
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
