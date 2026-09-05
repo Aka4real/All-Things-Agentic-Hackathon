@@ -31,11 +31,11 @@ export default function RootLayout({
               </div>
 
               <div className="flex items-center gap-3 text-fg-4">
-                <span>Gemini 2.5 Flash</span>
+                <span>Gemini 3.8 Flash</span>
                 <span className="text-edge/[0.2]">·</span>
                 <span>Cloud Run</span>
                 <span className="text-edge/[0.2]">·</span>
-                <span>Gemma 2 Guardrails</span>
+                <span>Gemma 4 Guardrails</span>
               </div>
             </div>
           </footer>

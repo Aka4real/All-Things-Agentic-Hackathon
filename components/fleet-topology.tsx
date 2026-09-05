@@ -40,7 +40,7 @@ export default function FleetTopology() {
       badge: 'Guardrails',
       icon: Lock,
       metrics: { latency: '14ms', status: 'Zero leaks', throughput: '100% inline' },
-      policy: 'Deterministic regex + neural Gemma 2 classifier intercepting prompt injection and PII.',
+      policy: 'Deterministic regex + neural Gemma 4 classifier intercepting prompt injection and PII.',
       description: 'Real-time filter intercepting adversarial prompts and redacting PII.'
     },
     {

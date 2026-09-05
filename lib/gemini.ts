@@ -10,7 +10,7 @@ export class GeminiAgentService {
   }
 
   /**
-   * Run reasoning generation with Gemini 3.7 Flash model, falling back gracefully to realistic simulation if no API key is provided in local testing.
+   * Run reasoning generation with Gemini 3.8 Flash model, falling back gracefully to realistic simulation if no API key is provided in local testing.
    */
   public static async generateAgentStep(params: {
     modelId?: string;
@@ -18,12 +18,12 @@ export class GeminiAgentService {
     prompt: string;
     history?: { role: string; parts: string }[];
   }): Promise<{ response: string; is_live_api: boolean; model_used: string }> {
-    const modelName = params.modelId || 'gemini-3.7-flash';
+    const modelName = params.modelId || 'gemini-3.8-flash';
     const client = this.getClient();
 
     if (client) {
-      // Try preferred model (gemini-3.7-flash), falling back to gemini-3.6-flash
-      const candidateModels = [modelName, 'gemini-3.6-flash'];
+      // Try preferred model (gemini-3.8-flash), falling back gracefully if needed
+      const candidateModels = [modelName, 'gemini-2.5-flash', 'gemini-1.5-flash'];
       for (const targetModel of candidateModels) {
         try {
           const model = client.genAI.getGenerativeModel({
@@ -46,7 +46,7 @@ export class GeminiAgentService {
 
     // High-fidelity local simulation output for demo resilience
     return {
-      response: `[GEMINI 3.7 FLASH HYBRID REASONING] Evaluated input payload against enterprise policy rules, pgvector memory bank, and Zero-Trust identity scopes. Cross-verified multi-tier supply chain integrity with 0 unhandled violations.`,
+      response: `[GEMINI 3.8 FLASH HYBRID REASONING] Evaluated input payload against enterprise policy rules, pgvector memory bank, and Zero-Trust identity scopes. Cross-verified multi-tier supply chain integrity with 0 unhandled violations.`,
       is_live_api: false,
       model_used: `${modelName} (Institutional Thinking Mode)`
     };

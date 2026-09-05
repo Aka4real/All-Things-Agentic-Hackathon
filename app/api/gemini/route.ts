@@ -5,7 +5,7 @@ export async function GET() {
   const startTime = Date.now();
   try {
     const result = await GeminiAgentService.generateAgentStep({
-      modelId: 'gemini-3.7-flash',
+      modelId: 'gemini-3.8-flash',
       systemInstruction: 'You are the Gemini health probe.',
       prompt: 'Respond with exactly: "Google Gemini API is healthy and connected."'
     });

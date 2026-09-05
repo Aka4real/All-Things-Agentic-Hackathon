@@ -11,7 +11,7 @@ create table public.agent_registry (
   department text not null,
   description text not null,
   version text not null default '1.0.0',
-  model_id text not null default 'gemini-3.7-flash',
+  model_id text not null default 'gemini-3.8-flash',
   capabilities text[] not null default '{}',
   required_scopes text[] not null default '{}',
   sla_status text not null default 'healthy',
@@ -78,7 +78,7 @@ create table public.security_events (
   raw_payload text not null,
   sanitized_payload text,
   action_taken text not null,
-  shield_engine text not null default 'Gemma-2-Guardrail + Neural Filter',
+  shield_engine text not null default 'Gemma-4-Guardrail + Neural Filter',
   created_at timestamptz not null default now()
 );
 

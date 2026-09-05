@@ -53,7 +53,7 @@ export class ModelArmor {
     let isInjection = false;
     let isPii = false;
 
-    // 1. Prompt Injection Scanning (Gemma-2-Guardrail Heuristics)
+    // 1. Prompt Injection Scanning (Gemma-4-Guardrail Heuristics)
     for (const pattern of this.injectionPatterns) {
       if (pattern.test(input)) {
         threats.push(`Prompt Injection Signature: ${pattern.toString()}`);
@@ -83,7 +83,7 @@ export class ModelArmor {
         raw_payload: input,
         sanitized_payload: sanitized,
         action_taken: isInjection ? 'blocked' : 'redacted',
-        shield_engine: 'Gemma-2-Guardrail + Model Armor Deterministic Filter',
+        shield_engine: 'Gemma-4-Guardrail + Model Armor Deterministic Filter',
         created_at: new Date().toISOString()
       };
 
