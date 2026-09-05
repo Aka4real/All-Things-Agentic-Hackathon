@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, 
   Layers, 
-  Activity, 
+  Activity,
+  LockKeyhole, 
   Database, 
   Lock, 
   Terminal,
@@ -27,6 +28,7 @@ export default function Navbar() {
     { name: 'Workflows', href: '/runs', icon: Terminal },
     { name: 'Memory', href: '/memory', icon: Database },
     { name: 'Security', href: '/security', icon: Lock },
+    { name: 'Admin', href: '/admin', icon: LockKeyhole },
   ];
 
   return (
