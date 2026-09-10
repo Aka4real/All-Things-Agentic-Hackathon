@@ -159,6 +159,23 @@ export default function MemoryBankPage() {
         </AnimatePresence>
       </motion.div>
 
+      {/* Empty Search State */}
+      {filteredMemories.length === 0 && (
+        <div className="surface p-12 text-center rounded-xl border border-edge/[0.08] space-y-3">
+          <Database className="w-8 h-8 mx-auto text-fg-4 opacity-50" />
+          <h3 className="text-sm font-medium text-fg">No matching memories found</h3>
+          <p className="text-[12px] text-fg-3 max-w-sm mx-auto">
+            No compliance records match your search criteria. Try adjusting your query or filter tags.
+          </p>
+          <button
+            onClick={() => { setSearchQuery(''); setSelectedType('All'); }}
+            className="px-3.5 py-1.5 rounded-lg bg-raised text-fg text-[12px] font-medium hover:bg-raised/80 border border-edge/[0.08] transition-colors"
+          >
+            Reset search filters
+          </button>
+        </div>
+      )}
+
       {/* Add modal */}
       <AnimatePresence>
         {showAddModal && (
@@ -194,16 +211,28 @@ export default function MemoryBankPage() {
               </div>
 
               <div className="space-y-3">
-                <div>
-                  <label className="text-[12px] text-fg-3 block mb-1">Entity name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Cobalt Supply Logistics Corp"
-                    value={newEntityName}
-                    onChange={(e) => setNewEntityName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-surface border border-edge/[0.12] text-fg text-[13px] focus:border-accent/50 focus:outline-none placeholder:text-fg-4"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[12px] text-fg-3 block mb-1">Entity name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Nexus Materials Ltd"
+                      value={newEntityName}
+                      onChange={(e) => setNewEntityName(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-surface border border-edge/[0.12] text-fg text-[13px] focus:border-accent/50 focus:outline-none placeholder:text-fg-4"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[12px] text-fg-3 block mb-1">Entity ID (optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. VEND-NEXUS-88"
+                      value={newEntityId}
+                      onChange={(e) => setNewEntityId(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-surface border border-edge/[0.12] text-fg text-[13px] font-mono focus:border-accent/50 focus:outline-none placeholder:text-fg-4"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

@@ -13,6 +13,16 @@ export class AgentGateway {
    * Evaluate a transaction against Enterprise Risk & Spend Policies.
    */
   public static evaluatePolicy(poAmountUsd: number, riskScore: number, supplierSanctionsRisk: string): PolicyEvaluationResult {
+    // 0. Financial Sanity & Non-Positive Amount Gate
+    if (poAmountUsd <= 0 || isNaN(poAmountUsd)) {
+      return {
+        allowed: false,
+        requires_human_approval: false,
+        policy_name: 'POL-FINANCIAL-SANITY-GATE',
+        reason: 'CRITICAL VIOLATION: Purchase Order amount must be a positive value greater than $0.'
+      };
+    }
+
     // 1. Prohibited sanction check
     if (supplierSanctionsRisk === 'PROHIBITED') {
       return {

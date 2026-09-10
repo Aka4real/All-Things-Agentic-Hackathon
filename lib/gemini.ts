@@ -22,8 +22,13 @@ export class GeminiAgentService {
     const client = this.getClient();
 
     if (client) {
-      // Try preferred model (gemini-3.8-flash), falling back gracefully if needed
-      const candidateModels = [modelName, 'gemini-2.5-flash', 'gemini-1.5-flash'];
+      // Prioritize active models: gemini-3.6-flash, then fallback
+      const candidateModels = [
+        'gemini-3.6-flash',
+        modelName,
+        'gemini-2.5-flash',
+        'gemini-1.5-flash'
+      ];
       for (const targetModel of candidateModels) {
         try {
           const model = client.genAI.getGenerativeModel({

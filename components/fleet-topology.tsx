@@ -9,13 +9,23 @@ import {
   Cpu, 
   Server, 
   GitBranch, 
-  CheckCircle2
+  CheckCircle2,
+  Crown
 } from 'lucide-react';
 
 export default function FleetTopology() {
-  const [activeNode, setActiveNode] = useState<string>('runtime');
+  const [activeNode, setActiveNode] = useState<string>('governor');
 
   const nodes = [
+    {
+      id: 'governor',
+      name: 'The Governor',
+      badge: 'Apex Orchestrator',
+      icon: Crown,
+      metrics: { latency: '15ms', status: 'Active', throughput: 'Gemini 3.8' },
+      policy: 'Autonomous capability gap detection, dynamic custom agent synthesis, and multi-agent fleet supervision.',
+      description: 'Supreme apex orchestrator and dynamic custom agent synthesizer.'
+    },
     {
       id: 'registry',
       name: 'Agent Registry',

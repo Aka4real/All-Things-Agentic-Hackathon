@@ -25,7 +25,7 @@ interface TraceTimelineProps {
 }
 
 export default function TraceTimeline({ traces, isLive = false }: TraceTimelineProps) {
-  const [expandedTraceId, setExpandedTraceId] = useState<string | null>(null);
+  const [expandedTraceIds, setExpandedTraceIds] = useState<Set<string>>(new Set());
 
   const getStepIcon = (type: AgentTrace['step_type']) => {
     switch (type) {
@@ -36,6 +36,8 @@ export default function TraceTimeline({ traces, isLive = false }: TraceTimelineP
       case 'tool_call':
       case 'tool_response': return Wrench;
       case 'policy_gate': return FileCheck2;
+      case 'agent_synthesis': return Sparkles;
+      case 'task_delegation': return Terminal;
       default: return Terminal;
     }
   };
@@ -71,7 +73,15 @@ export default function TraceTimeline({ traces, isLive = false }: TraceTimelineP
   };
 
   const toggleExpand = (id: string) => {
-    setExpandedTraceId(expandedTraceId === id ? null : id);
+    setExpandedTraceIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
 
   return (
@@ -96,16 +106,16 @@ export default function TraceTimeline({ traces, isLive = false }: TraceTimelineP
         </div>
       ) : (
         <div className="space-y-2 relative before:absolute before:left-[11px] before:top-3 before:bottom-3 before:w-px before:bg-edge/[0.12]">
-          {traces.map((trace, index) => {
+          {traces.map((trace) => {
             const Icon = getStepIcon(trace.step_type);
-            const isExpanded = expandedTraceId === trace.id;
+            const isExpanded = expandedTraceIds.has(trace.id);
 
             return (
               <motion.div 
                 key={trace.id}
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ type: "spring", bounce: 0, duration: 0.35, delay: index * 0.02 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
                 className="relative pl-9 group"
               >
                 {/* Timeline dot */}
@@ -174,7 +184,7 @@ export default function TraceTimeline({ traces, isLive = false }: TraceTimelineP
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+                        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                         className="mt-3 pt-3 border-t border-edge/[0.08] space-y-2 overflow-hidden"
                       >
                         <div className="grid grid-cols-3 gap-2 text-[11px] p-3 rounded-lg bg-raised/50 border border-edge/[0.08]">

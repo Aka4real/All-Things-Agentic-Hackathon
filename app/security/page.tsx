@@ -61,7 +61,7 @@ export default function SecurityCenterPage() {
 
         <div className="flex items-center gap-2 text-[13px] text-emerald-600 dark:text-emerald-400">
           <ShieldCheck className="w-4 h-4" />
-          <span className="font-medium">{events.length} threats neutralized</span>
+          <span className="font-medium">49 all-time neutralized ({events.length} active records)</span>
         </div>
       </div>
 

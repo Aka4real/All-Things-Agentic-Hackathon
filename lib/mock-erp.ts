@@ -8,8 +8,8 @@ export class EnterpriseERPService {
   /**
    * Query inventory levels with Zero-Trust token authentication.
    */
-  public static queryInventory(token: string, supplierId?: string): { success: boolean; data?: ERPInventoryRecord[]; error?: string } {
-    const auth = ZeroTrustIdentityService.verifyScope(token, 'erp:read');
+  public static queryInventory(token: string, supplierId?: string, callerAgentSlug?: string): { success: boolean; data?: ERPInventoryRecord[]; error?: string } {
+    const auth = ZeroTrustIdentityService.verifyScope(token, 'erp:read', callerAgentSlug);
     if (!auth.authorized) {
       return { success: false, error: auth.reason };
     }
@@ -25,14 +25,14 @@ export class EnterpriseERPService {
   /**
    * OFAC & Sanctions registry lookup with Zero-Trust token authentication.
    */
-  public static checkSanctions(token: string, entityName: string): { 
+  public static checkSanctions(token: string, entityName: string, callerAgentSlug?: string): { 
     success: boolean; 
     is_sanctioned: boolean; 
     risk_level: 'CLEAN' | 'CAUTION' | 'PROHIBITED'; 
     details?: string; 
     error?: string 
   } {
-    const auth = ZeroTrustIdentityService.verifyScope(token, 'sanctions:query');
+    const auth = ZeroTrustIdentityService.verifyScope(token, 'sanctions:query', callerAgentSlug);
     if (!auth.authorized) {
       return { success: false, is_sanctioned: false, risk_level: 'PROHIBITED', error: auth.reason };
     }
@@ -58,7 +58,7 @@ export class EnterpriseERPService {
   /**
    * ESG Sensor & Satellite Data query.
    */
-  public static checkESGSensors(token: string, facilityName: string): {
+  public static checkESGSensors(token: string, facilityName: string, callerAgentSlug?: string): {
     success: boolean;
     sensor_status: string;
     thermal_variance_pct: number;
@@ -66,7 +66,7 @@ export class EnterpriseERPService {
     greenwashing_detected: boolean;
     error?: string;
   } {
-    const auth = ZeroTrustIdentityService.verifyScope(token, 'esg:sensor:read');
+    const auth = ZeroTrustIdentityService.verifyScope(token, 'esg:sensor:read', callerAgentSlug);
     if (!auth.authorized) {
       return { success: false, sensor_status: 'UNAUTHORIZED', thermal_variance_pct: 0, solar_generation_kw: 0, greenwashing_detected: false, error: auth.reason };
     }

@@ -5,7 +5,9 @@ export type StepType =
   | 'model_armor_scan' 
   | 'policy_gate' 
   | 'memory_lookup'
-  | 'zero_trust_auth';
+  | 'zero_trust_auth'
+  | 'agent_synthesis'
+  | 'task_delegation';
 
 export type StepStatus = 'success' | 'warning' | 'violation' | 'intercepted' | 'pending';
 
@@ -28,7 +30,7 @@ export interface AgentRegistryItem {
   id: string;
   agent_slug: string;
   name: string;
-  department: 'Supply Chain' | 'ESG Compliance' | 'Finance' | 'Logistics' | 'SecOps';
+  department: 'Supply Chain' | 'ESG Compliance' | 'Finance' | 'Logistics' | 'SecOps' | string;
   description: string;
   version: string;
   model_id: string;
@@ -39,6 +41,78 @@ export interface AgentRegistryItem {
   total_runs: number;
   is_approved: boolean;
   author: string;
+  is_custom?: boolean;
+  created_by_governor?: boolean;
+  custom_rationale?: string;
+  system_instruction?: string;
+}
+
+export interface GovernorProblemInput {
+  title: string;
+  problem_description: string;
+  department: string;
+  priority: 'standard' | 'elevated' | 'critical';
+  vendor_context?: string;
+  estimated_amount_usd?: number;
+}
+
+export interface CustomAgentSpec {
+  name: string;
+  agent_slug: string;
+  department: string;
+  description: string;
+  version: string;
+  model_id: string;
+  capabilities: string[];
+  required_scopes: string[];
+  system_instruction: string;
+  rationale: string;
+}
+
+export interface GovernorDelegationTask {
+  task_id: string;
+  agent_slug: string;
+  agent_name: string;
+  is_custom: boolean;
+  subtask_description: string;
+  zero_trust_scope: string;
+  status: 'pending' | 'running' | 'completed' | 'blocked';
+  output_summary?: string;
+  risk_score_contribution?: number;
+}
+
+export interface GovernorAnalysisResult {
+  problem_title: string;
+  capability_gap_detected: boolean;
+  gap_analysis_summary: string;
+  forensic_assessment?: {
+    regulatory_exposure: string[];
+    technical_failure_modes: string[];
+    strategic_rationale: string;
+  };
+  matched_existing_agents: string[];
+  missing_capabilities: string[];
+  custom_agent_spec?: CustomAgentSpec;
+  delegation_plan: GovernorDelegationTask[];
+  recommended_action: string;
+}
+
+export interface GovernorOrchestrationRun {
+  run_id: string;
+  problem_input: GovernorProblemInput;
+  analysis: GovernorAnalysisResult;
+  traces: AgentTrace[];
+  security_events: SecurityEvent[];
+  composite_risk_score: number;
+  policy_evaluation?: {
+    allowed: boolean;
+    requires_human_approval: boolean;
+    policy_name: string;
+    reason: string;
+  };
+  executive_verdict: string;
+  created_at: string;
+  completed_at?: string;
 }
 
 export type ThreatType = 

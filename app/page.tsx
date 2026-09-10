@@ -11,7 +11,9 @@ import {
   Terminal, 
   Lock, 
   Zap, 
-  ShieldAlert 
+  ShieldAlert,
+  Crown,
+  Sparkles
 } from 'lucide-react';
 import FleetTopology from '@/components/fleet-topology';
 import { INITIAL_AGENTS, INITIAL_SECURITY_EVENTS } from '@/lib/mock-data';
@@ -64,12 +66,21 @@ export default function MissionControlPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              href="/runs/demo-elena-vance"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors shadow-sm"
+              href="/governor"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-medium transition-all shadow-sm"
             >
-              <Zap className="w-4 h-4" />
+              <Crown className="w-4 h-4 text-amber-300" />
+              <span>The Governor Studio</span>
+              <Sparkles className="w-3.5 h-3.5 text-blue-200" />
+            </Link>
+
+            <Link
+              href="/runs/demo-elena-vance"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-raised hover:bg-raised/80 text-fg text-sm font-medium border border-edge/[0.08] transition-colors"
+            >
+              <Zap className="w-4 h-4 text-accent" />
               <span>Launch flagship audit</span>
-              <ArrowRight className="w-3.5 h-3.5 text-blue-200" />
+              <ArrowRight className="w-3.5 h-3.5 text-fg-4" />
             </Link>
 
             <Link
@@ -111,7 +122,7 @@ export default function MissionControlPage() {
         {[
           { label: 'Registered agents', value: String(INITIAL_AGENTS.length), sub: 'All operational', icon: Layers, color: 'text-accent' },
           { label: 'Reasoning spans', value: '68,490', sub: 'OpenTelemetry v1.28', icon: Terminal, color: 'text-fg-3' },
-          { label: 'Threats blocked', value: '49', sub: '0 leaks passed', icon: ShieldAlert, color: 'text-rose-600 dark:text-rose-400' },
+          { label: 'Threats blocked', value: '49', sub: 'All-time fleet aggregate', icon: ShieldAlert, color: 'text-rose-600 dark:text-rose-400' },
           { label: 'Scoped tokens', value: '12,450', sub: '5m TTL enforced', icon: Lock, color: 'text-emerald-600 dark:text-emerald-400' },
         ].map((m) => (
           <div key={m.label} className="surface p-4">
