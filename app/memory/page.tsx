@@ -1,6 +1,5 @@
 'use client';
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Database, 
@@ -8,16 +7,43 @@ import {
   Plus, 
   Clock, 
   ShieldCheck, 
-  X 
+  X,
+  Radio
 } from 'lucide-react';
 import { MemoryBankService } from '@/lib/memory-bank';
 import { MemoryBankItem } from '@/lib/types';
+import { db, isFirebaseConfigured } from '@/lib/firebase';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 
 export default function MemoryBankPage() {
   const [memories, setMemories] = useState<MemoryBankItem[]>(MemoryBankService.getAllMemories());
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('All');
   const [showAddModal, setShowAddModal] = useState(false);
+
+  useEffect(() => {
+    // Initial sync with Firestore if configured
+    MemoryBankService.syncWithFirestore().then((items) => {
+      if (items.length > 0) setMemories(items);
+    });
+
+    if (!isFirebaseConfigured || !db) return;
+
+    const q = query(collection(db, 'memories'), orderBy('created_at', 'desc'));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const remoteItems: MemoryBankItem[] = [];
+          snapshot.forEach((d) => remoteItems.push(d.data() as MemoryBankItem));
+          setMemories(remoteItems);
+        }
+      },
+      (err) => console.warn('Memory onSnapshot warning:', err)
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   const [newEntityName, setNewEntityName] = useState('');
   const [newEntityId, setNewEntityId] = useState('');
@@ -68,13 +94,27 @@ export default function MemoryBankPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[13px] font-medium transition-colors shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Add memory
-        </button>
+        <div className="flex items-center gap-3">
+          {isFirebaseConfigured ? (
+            <span className="flex items-center gap-1.5 text-[12px] text-emerald-600 dark:text-emerald-400 font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Cloud Firestore Live
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-[12px] text-fg-3 px-2.5 py-1 rounded-full bg-raised border border-edge/[0.08]">
+              <span className="w-1.5 h-1.5 rounded-full bg-fg-4" />
+              Local Storage Mode
+            </span>
+          )}
+
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[13px] font-medium transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Add memory
+          </button>
+        </div>
       </div>
 
       {/* Search & filters */}

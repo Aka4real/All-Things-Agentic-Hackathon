@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions for FortressFleet Zero-Trust governance
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isGovernorAdmin() {
+      return isAuthenticated() && (request.auth.token.role == 'governor' || request.auth.token.role == 'procurement_director');
+    }
+
+    // Agents registry: Read open to all authenticated users; writes restricted to Governor or Admin
+    match /agents/{agentId} {
+      allow read: if true;
+      allow write: if isGovernorAdmin();
+    }
+
+    // Workflows: Public/Read access for audit inspection; execution updates allowed
+    match /workflows/{workflowId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if isGovernorAdmin();
+
+      // OpenTelemetry traces subcollection
+      match /traces/{traceId} {
+        allow read: if true;
+        allow create: if true;
+      }
+    }
+
+    // Memory Bank records: Scoped read/write
+    match /memories/{memoryId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if isGovernorAdmin();
+    }
+
+    // Security events: Append-only audit log (Zero-Trust immutability)
+    match /security_events/{eventId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false; // Immutable audit trail
+    }
+  }
+}

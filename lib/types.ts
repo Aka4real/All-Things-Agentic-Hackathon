@@ -177,3 +177,73 @@ export interface ERPInventoryRecord {
   supplier_id: string;
   unit_cost_usd: number;
 }
+
+export type MCPTransportType = 'sse' | 'http' | 'websocket';
+
+export interface MCPToolParameter {
+  type: string;
+  description?: string;
+  enum?: string[];
+  default?: unknown;
+}
+
+export interface MCPToolSchema {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: 'object';
+    properties: Record<string, MCPToolParameter>;
+    required?: string[];
+  };
+}
+
+export interface MCPResource {
+  uri: string;
+  name: string;
+  description?: string;
+  mimeType?: string;
+}
+
+export interface EnterpriseMCPServer {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  endpoint_url: string;
+  transport: MCPTransportType;
+  auth_type: 'none' | 'bearer' | 'api_key' | 'basic';
+  auth_header?: string;
+  status: 'online' | 'degraded' | 'offline' | 'untested';
+  latency_ms?: number;
+  last_health_check?: string;
+  allowed_agent_slugs: string[];
+  capabilities: {
+    tools: boolean;
+    resources: boolean;
+    prompts: boolean;
+  };
+  tools: MCPToolSchema[];
+  resources?: MCPResource[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MCPExecutionRequest {
+  server_id: string;
+  tool_name: string;
+  arguments: Record<string, unknown>;
+  caller_agent_slug: string;
+  zero_trust_token?: string;
+}
+
+export interface MCPExecutionResponse {
+  success: boolean;
+  server_id: string;
+  tool_name: string;
+  result?: unknown;
+  error?: string;
+  duration_ms: number;
+  model_armor_sanitized: boolean;
+  threats_neutralized?: string[];
+  timestamp: string;
+}

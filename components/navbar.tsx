@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   Zap,
-  Crown
+  Crown,
+  Cpu
 } from 'lucide-react';
 import ThemeToggle from '@/components/theme-toggle';
 
@@ -25,6 +26,7 @@ export default function Navbar() {
   const navItems = [
     { name: 'Overview', href: '/', icon: Activity },
     { name: 'Governor', href: '/governor', icon: Crown },
+    { name: 'MCP Hub', href: '/mcp', icon: Cpu },
     { name: 'Agents', href: '/registry', icon: Layers },
     { name: 'Workflows', href: '/runs', icon: Terminal },
     { name: 'Memory', href: '/memory', icon: Database },

@@ -1,10 +1,21 @@
 import { MemoryBankItem } from './types';
 import { INITIAL_MEMORY_BANK } from './mock-data';
+import { db, isFirebaseConfigured } from './firebase';
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  getDocs, 
+  query, 
+  orderBy, 
+  writeBatch 
+} from 'firebase/firestore';
 
 const STORAGE_KEY = 'fortress_fleet_memory_bank';
 
 export class MemoryBankService {
   private static inMemory: MemoryBankItem[] = [...INITIAL_MEMORY_BANK];
+  private static hasSyncedFirestore = false;
 
   private static getStore(): MemoryBankItem[] {
     if (typeof window === 'undefined') return this.inMemory;
@@ -31,11 +42,59 @@ export class MemoryBankService {
   }
 
   /**
+   * Synchronize Memory Bank with Cloud Firestore if configured
+   */
+  public static async syncWithFirestore(): Promise<MemoryBankItem[]> {
+    if (!isFirebaseConfigured || !db || typeof window === 'undefined') {
+      return this.getStore();
+    }
+
+    try {
+      const memoriesCol = collection(db, 'memories');
+      const snapshot = await getDocs(query(memoriesCol, orderBy('created_at', 'desc')));
+
+      if (snapshot.empty) {
+        // Automatically seed initial mock memories to Firestore
+        const batch = writeBatch(db);
+        const initial = this.getStore();
+        for (const item of initial) {
+          batch.set(doc(db, 'memories', item.id), item);
+        }
+        await batch.commit();
+        this.hasSyncedFirestore = true;
+        return initial;
+      }
+
+      const firestoreItems: MemoryBankItem[] = [];
+      snapshot.forEach((d) => {
+        firestoreItems.push(d.data() as MemoryBankItem);
+      });
+
+      this.saveStore(firestoreItems);
+      this.hasSyncedFirestore = true;
+      return firestoreItems;
+    } catch (err) {
+      console.warn('Firestore memory sync warning, falling back to local store:', err);
+      return this.getStore();
+    }
+  }
+
+  /**
    * Search memory bank by entity ID, entity name or semantic keywords with strict boolean grouping
    */
-  public static async queryMemories(query: string, entityId?: string): Promise<{ items: MemoryBankItem[]; query_latency_ms: number }> {
+  public static async queryMemories(queryStr: string, entityId?: string): Promise<{ items: MemoryBankItem[]; query_latency_ms: number }> {
     const startTime = Date.now();
-    const queryLower = query ? query.toLowerCase().trim() : '';
+
+    // Trigger lazy sync on first query if not synced yet
+    if (isFirebaseConfigured && db && !this.hasSyncedFirestore && typeof window !== 'undefined') {
+      try {
+        await this.syncWithFirestore();
+      } catch {
+        // Fallback to local store silently
+      }
+    }
+
+    const queryLower = queryStr ? queryStr.toLowerCase().trim() : '';
     const targetEntityId = entityId ? entityId.toLowerCase().trim() : '';
     const memories = this.getStore();
 
@@ -64,7 +123,7 @@ export class MemoryBankService {
   }
 
   /**
-   * Ingest a new cross-session memory observation with persistence
+   * Ingest a new cross-session memory observation with dual Firestore + Local persistence
    */
   public static addMemory(item: Omit<MemoryBankItem, 'id' | 'created_at'>): MemoryBankItem {
     const newRecord: MemoryBankItem = {
@@ -75,6 +134,14 @@ export class MemoryBankService {
     const current = this.getStore();
     current.unshift(newRecord);
     this.saveStore(current);
+
+    // Asynchronously replicate to Cloud Firestore
+    if (isFirebaseConfigured && db && typeof window !== 'undefined') {
+      setDoc(doc(db, 'memories', newRecord.id), newRecord).catch((err) => {
+        console.warn('Failed to replicate memory to Firestore:', err);
+      });
+    }
+
     return newRecord;
   }
 

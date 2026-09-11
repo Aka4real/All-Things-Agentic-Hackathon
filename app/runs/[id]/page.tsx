@@ -31,6 +31,8 @@ import { ZeroTrustIdentityService } from '@/lib/zero-trust';
 import { EnterpriseERPService } from '@/lib/mock-erp';
 import { AgentGateway } from '@/lib/agent-gateway';
 import { AgentTrace, SecurityEvent } from '@/lib/types';
+import { db, isFirebaseConfigured } from '@/lib/firebase';
+import { collection, doc, setDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
 
 interface WorkflowScenario {
   id: string;
@@ -335,6 +337,32 @@ export default function WorkflowExecutionPage() {
     setActiveStepIndex(0);
   }, [scenario]);
 
+  // Listen for real-time trace updates from Cloud Firestore if configured
+  useEffect(() => {
+    if (!isFirebaseConfigured || !db || !rawId) return;
+
+    const q = query(
+      collection(db, 'workflows', rawId, 'traces'),
+      orderBy('step_number', 'asc')
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const remoteTraces: AgentTrace[] = [];
+          snapshot.forEach((d) => {
+            remoteTraces.push(d.data() as AgentTrace);
+          });
+          setTraces(remoteTraces);
+        }
+      },
+      (err) => console.warn('Firestore workflow traces onSnapshot warning:', err)
+    );
+
+    return () => unsubscribe();
+  }, [rawId]);
+
   const resetSimulation = () => {
     setIsRunning(false);
     setTraces([]);
@@ -376,6 +404,23 @@ export default function WorkflowExecutionPage() {
     const traceId = `trace-${Date.now()}`;
     const newTraces: AgentTrace[] = [];
 
+    // Replicate workflow execution start to Firestore
+    if (isFirebaseConfigured && db) {
+      setDoc(
+        doc(db, 'workflows', scenario.id),
+        {
+          id: scenario.id,
+          name: scenario.name,
+          status: 'running',
+          vendor_name: vendorName,
+          po_amount: poAmount,
+          trace_id: traceId,
+          updated_at: new Date().toISOString()
+        },
+        { merge: true }
+      ).catch(() => {});
+    }
+
     const pushTrace = (trace: Omit<AgentTrace, 'id' | 'trace_id' | 'created_at'>) => {
       const item: AgentTrace = {
         ...trace,
@@ -385,6 +430,21 @@ export default function WorkflowExecutionPage() {
       };
       newTraces.push(item);
       setTraces([...newTraces]);
+
+      // Replicate trace span & progress to Cloud Firestore
+      if (isFirebaseConfigured && db) {
+        setDoc(doc(db, 'workflows', scenario.id, 'traces', item.id), item).catch(() => {});
+        setDoc(
+          doc(db, 'workflows', scenario.id),
+          {
+            last_span_id: item.span_id,
+            trace_count: newTraces.length,
+            status: item.status === 'intercepted' ? 'intercepted' : 'running',
+            updated_at: new Date().toISOString()
+          },
+          { merge: true }
+        ).catch(() => {});
+      }
     };
 
     const targetEntityId = resolveEntityId(vendorName);
@@ -397,6 +457,9 @@ export default function WorkflowExecutionPage() {
     const armorScan = ModelArmor.scan(rfqText, traceId);
     if (armorScan.security_event) {
       setSecurityEvent(armorScan.security_event);
+      if (isFirebaseConfigured && db) {
+        setDoc(doc(db, 'security_events', armorScan.security_event.id), armorScan.security_event).catch(() => {});
+      }
     }
 
     pushTrace({
@@ -667,6 +730,23 @@ export default function WorkflowExecutionPage() {
     setIsRunning(false);
     setIsCompleted(true);
 
+    // Replicate completion state to Cloud Firestore
+    if (isFirebaseConfigured && db) {
+      setDoc(doc(db, 'workflows', scenario.id, 'traces', finalTrace.id), finalTrace).catch(() => {});
+      setDoc(
+        doc(db, 'workflows', scenario.id),
+        {
+          status: 'completed',
+          is_completed: true,
+          executive_determination: synthesisText,
+          model_used: modelUsed,
+          risk_score: riskScore,
+          updated_at: new Date().toISOString()
+        },
+        { merge: true }
+      ).catch(() => {});
+    }
+
     try {
       confetti({
         particleCount: 80,
@@ -691,6 +771,17 @@ export default function WorkflowExecutionPage() {
         </Link>
 
         <div className="flex items-center gap-2 text-[12px] text-fg-4">
+          {isFirebaseConfigured ? (
+            <span className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Firestore Live
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-[11px] text-fg-3 px-2 py-0.5 rounded-full bg-raised border border-edge/[0.08]">
+              <span className="w-1.5 h-1.5 rounded-full bg-fg-4" />
+              Local Simulation
+            </span>
+          )}
           <span className="text-fg-3 font-medium">{scenario.heroPersona}</span>
           <span className="text-edge/[0.2]">·</span>
           <span>{scenario.runtime}</span>
